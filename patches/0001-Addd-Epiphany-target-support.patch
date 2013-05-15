@@ -1,0 +1,51 @@
+From 868fa0eae570b91baad443c280e5c51c896c28ea Mon Sep 17 00:00:00 2001
+From: Yabin Hu <yabin.hwu@gmail.com>
+Date: Wed, 15 May 2013 10:26:12 +0800
+Subject: [PATCH] Addd Epiphany target support
+
+---
+ CMakeLists.txt            |    1 +
+ include/llvm/ADT/Triple.h |    1 +
+ lib/Target/LLVMBuild.txt  |    2 +-
+ 3 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ac0ad17..7b0f4c6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -77,6 +77,7 @@ set(LLVM_ALL_TARGETS
+   AArch64
+   ARM
+   CppBackend
++  Epiphany
+   Hexagon
+   Mips
+   MBlaze
+diff --git a/include/llvm/ADT/Triple.h b/include/llvm/ADT/Triple.h
+index 3a72e87..0c43ef4 100644
+--- a/include/llvm/ADT/Triple.h
++++ b/include/llvm/ADT/Triple.h
+@@ -45,6 +45,7 @@ public:
+ 
+     arm,     // ARM: arm, armv.*, xscale
+     aarch64, // AArch64: aarch64
++    epiphany,// Epiphany: epiphany 
+     hexagon, // Hexagon: hexagon
+     mips,    // MIPS: mips, mipsallegrex
+     mipsel,  // MIPSEL: mipsel, mipsallegrexel
+diff --git a/lib/Target/LLVMBuild.txt b/lib/Target/LLVMBuild.txt
+index 1022ae9..e4f7d24 100644
+--- a/lib/Target/LLVMBuild.txt
++++ b/lib/Target/LLVMBuild.txt
+@@ -16,7 +16,7 @@
+ ;===------------------------------------------------------------------------===;
+ 
+ [common]
+-subdirectories = AArch64 ARM CppBackend Hexagon MBlaze MSP430 NVPTX Mips PowerPC R600 Sparc SystemZ X86 XCore
++subdirectories = AArch64 ARM CppBackend Epiphany Hexagon MBlaze MSP430 NVPTX Mips PowerPC R600 Sparc SystemZ X86 XCore
+ 
+ ; This is a special group whose required libraries are extended (by llvm-build)
+ ; with the best execution engine (the native JIT, if available, or the
+-- 
+1.7.6.5
+
