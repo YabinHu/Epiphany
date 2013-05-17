@@ -1,4 +1,4 @@
-//===----- EpiphanyInstrInfo.td - Epiphany Instruction Info ----*- tablegen -*-=//
+//===---- EpiphanyInstrInfo.td - Epiphany Instruction Info ---*- tablegen -*-=//
 //
 //                     The LLVM Compiler Infrastructure
 //
