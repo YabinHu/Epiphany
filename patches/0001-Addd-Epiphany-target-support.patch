@@ -1,13 +1,14 @@
-From 868fa0eae570b91baad443c280e5c51c896c28ea Mon Sep 17 00:00:00 2001
+From 97de6ede08c28ca573ac7b5dae0b4caf71df83f8 Mon Sep 17 00:00:00 2001
 From: Yabin Hu <yabin.hwu@gmail.com>
-Date: Wed, 15 May 2013 10:26:12 +0800
+Date: Sat, 18 May 2013 09:34:43 +0800
 Subject: [PATCH] Addd Epiphany target support
 
 ---
  CMakeLists.txt            |    1 +
  include/llvm/ADT/Triple.h |    1 +
+ lib/Support/Triple.cpp    |    7 +++++++
  lib/Target/LLVMBuild.txt  |    2 +-
- 3 files changed, 3 insertions(+), 1 deletions(-)
+ 4 files changed, 10 insertions(+), 1 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index ac0ad17..7b0f4c6 100644
@@ -22,17 +23,77 @@ index ac0ad17..7b0f4c6 100644
    Mips
    MBlaze
 diff --git a/include/llvm/ADT/Triple.h b/include/llvm/ADT/Triple.h
-index 3a72e87..0c43ef4 100644
+index 3a72e87..595cb5a 100644
 --- a/include/llvm/ADT/Triple.h
 +++ b/include/llvm/ADT/Triple.h
 @@ -45,6 +45,7 @@ public:
  
      arm,     // ARM: arm, armv.*, xscale
      aarch64, // AArch64: aarch64
-+    epiphany,// Epiphany: epiphany 
++    epiphany,// Epiphany: epiphany
      hexagon, // Hexagon: hexagon
      mips,    // MIPS: mips, mipsallegrex
      mipsel,  // MIPSEL: mipsel, mipsallegrexel
+diff --git a/lib/Support/Triple.cpp b/lib/Support/Triple.cpp
+index 7c02ffb..93f4fa1 100644
+--- a/lib/Support/Triple.cpp
++++ b/lib/Support/Triple.cpp
+@@ -21,6 +21,7 @@ const char *Triple::getArchTypeName(ArchType Kind) {
+ 
+   case aarch64: return "aarch64";
+   case arm:     return "arm";
++  case epiphany:return "epiphany";
+   case hexagon: return "hexagon";
+   case mips:    return "mips";
+   case mipsel:  return "mipsel";
+@@ -60,6 +61,7 @@ const char *Triple::getArchTypePrefix(ArchType Kind) {
+   case arm:
+   case thumb:   return "arm";
+ 
++  case epiphany:return "epiphany";
+   case ppc64:
+   case ppc:     return "ppc";
+ 
+@@ -160,6 +162,7 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
+   return StringSwitch<Triple::ArchType>(Name)
+     .Case("aarch64", aarch64)
+     .Case("arm", arm)
++    .Case("epiphany", epiphany)
+     .Case("mips", mips)
+     .Case("mipsel", mipsel)
+     .Case("mips64", mips64)
+@@ -230,6 +233,7 @@ static Triple::ArchType parseArch(StringRef ArchName) {
+     .StartsWith("armv", Triple::arm)
+     .Case("thumb", Triple::thumb)
+     .StartsWith("thumbv", Triple::thumb)
++    .Case("epiphany", Triple::epiphany)
+     .Case("msp430", Triple::msp430)
+     .Cases("mips", "mipseb", "mipsallegrex", Triple::mips)
+     .Cases("mipsel", "mipsallegrexel", Triple::mipsel)
+@@ -670,6 +674,7 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
+ 
+   case llvm::Triple::amdil:
+   case llvm::Triple::arm:
++  case llvm::Triple::epiphany:
+   case llvm::Triple::hexagon:
+   case llvm::Triple::le32:
+   case llvm::Triple::mblaze:
+@@ -723,6 +728,7 @@ Triple Triple::get32BitArchVariant() const {
+     break;
+ 
+   case Triple::amdil:
++  case Triple::epiphany:
+   case Triple::spir:
+   case Triple::arm:
+   case Triple::hexagon:
+@@ -770,6 +776,7 @@ Triple Triple::get64BitArchVariant() const {
+     break;
+ 
+   case Triple::aarch64:
++  case Triple::epiphany:
+   case Triple::spir64:
+   case Triple::mips64:
+   case Triple::mips64el:
 diff --git a/lib/Target/LLVMBuild.txt b/lib/Target/LLVMBuild.txt
 index 1022ae9..e4f7d24 100644
 --- a/lib/Target/LLVMBuild.txt
