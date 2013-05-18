@@ -1,7 +1,7 @@
-From 97de6ede08c28ca573ac7b5dae0b4caf71df83f8 Mon Sep 17 00:00:00 2001
+From fe40c0d74c3f7d5b7bc1e04fa2e9882257c0dc25 Mon Sep 17 00:00:00 2001
 From: Yabin Hu <yabin.hwu@gmail.com>
-Date: Sat, 18 May 2013 09:34:43 +0800
-Subject: [PATCH] Addd Epiphany target support
+Date: Sat, 18 May 2013 09:51:30 +0800
+Subject: [PATCH] Add Epiphany target support to LLVM.
 
 ---
  CMakeLists.txt            |    1 +
