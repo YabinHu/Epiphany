@@ -1,0 +1,385 @@
+From e072b4e2eb656818eb40c27e43359f48d9def459 Mon Sep 17 00:00:00 2001
+From: Yabin Hu <yabin.hwu@gmail.com>
+Date: Sat, 18 May 2013 09:45:41 +0800
+Subject: [PATCH] Add Epiphany target support to clang.
+
+---
+ include/clang/Basic/BuiltinsEpiphany.def |   18 +++
+ include/clang/Basic/TargetBuiltins.h     |    9 ++
+ lib/Basic/Targets.cpp                    |  202 ++++++++++++++++++++++++++++++
+ lib/CodeGen/CGBuiltin.cpp                |    1 +
+ lib/CodeGen/TargetInfo.cpp               |    3 +
+ lib/Driver/ToolChains.cpp                |   24 ++++
+ lib/Driver/Tools.cpp                     |    2 +
+ 7 files changed, 259 insertions(+), 0 deletions(-)
+ create mode 100644 include/clang/Basic/BuiltinsEpiphany.def
+
+diff --git a/include/clang/Basic/BuiltinsEpiphany.def b/include/clang/Basic/BuiltinsEpiphany.def
+new file mode 100644
+index 0000000..bbc3f10
+--- /dev/null
++++ b/include/clang/Basic/BuiltinsEpiphany.def
+@@ -0,0 +1,18 @@
++//===----- BuiltinsEpiphany.def - Epiphany Builtin functions ----*- C++ -*-===//
++//
++//                     The LLVM Compiler Infrastructure
++//
++// This file is distributed under the University of Illinois Open Source
++// License. See LICENSE.TXT for details.
++//
++//===----------------------------------------------------------------------===//
++//
++// This file defines the Epiphany-specific builtin function database. Users of
++// this file must define the BUILTIN macro to make use of this information.
++//
++//===----------------------------------------------------------------------===//
++
++// The format of this database matches clang/Basic/Builtins.def.
++
++// In libgcc
++BUILTIN(__clear_cache, "vv*v*", "")
+diff --git a/include/clang/Basic/TargetBuiltins.h b/include/clang/Basic/TargetBuiltins.h
+index 66e378f..77d8f0e 100644
+--- a/include/clang/Basic/TargetBuiltins.h
++++ b/include/clang/Basic/TargetBuiltins.h
+@@ -130,6 +130,15 @@ namespace clang {
+         LastTSBuiltin
+     };
+   }
++
++  namespace Epiphany {
++    enum {
++        LastTIBuiltin = clang::Builtin::FirstTSBuiltin-1,
++#define BUILTIN(ID, TYPE, ATTRS) BI##ID,
++#include "clang/Basic/BuiltinsEpiphany.def"
++        LastTSBuiltin
++    };
++  }
+ } // end namespace clang.
+ 
+ #endif
+diff --git a/lib/Basic/Targets.cpp b/lib/Basic/Targets.cpp
+index 0086f05..54eccdc 100644
+--- a/lib/Basic/Targets.cpp
++++ b/lib/Basic/Targets.cpp
+@@ -5210,6 +5210,200 @@ namespace {
+   };
+ }
+ 
++namespace {
++class EpiphanyTargetInfo : public TargetInfo {
++  static const char * const GCCRegNames[];
++  static const TargetInfo::GCCRegAlias GCCRegAliases[];
++
++  static const Builtin::Info BuiltinInfo[];
++public:
++  EpiphanyTargetInfo(const std::string& triple) : TargetInfo(triple) {
++    BigEndian = false;
++    LongWidth = LongAlign = 64;
++    LongDoubleWidth = LongDoubleAlign = 128;
++    PointerWidth = PointerAlign = 64;
++    SuitableAlign = 128;
++    DescriptionString = "e-p:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-"
++                        "i64:64:64-i128:128:128-f32:32:32-f64:64:64-"
++                        "f128:128:128-n32:64-S128";
++
++    WCharType = UnsignedInt;
++    LongDoubleFormat = &llvm::APFloat::IEEEquad;
++
++    // Epiphany backend supports 64-bit operations at the moment. In principle
++    // 128-bit is possible if register-pairs are used.
++    MaxAtomicPromoteWidth = MaxAtomicInlineWidth = 64;
++
++    TheCXXABI.set(TargetCXXABI::GenericAArch64);
++  }
++  virtual void getTargetDefines(const LangOptions &Opts,
++                                MacroBuilder &Builder) const {
++    // GCC defines theses currently
++    Builder.defineMacro("__epiphany__");
++    Builder.defineMacro("__EPIPHANYEL__");
++
++    // ACLE predefines. Many can only have one possible value on v8 Epiphany.
++
++    // FIXME: these were written based on an unreleased version of a 32-bit ACLE
++    // which was intended to be compatible with a 64-bit implementation. They
++    // will need updating when a real 64-bit ACLE exists. Particularly pressing
++    // instances are: __ARM_ARCH_ISA_ARM, __ARM_ARCH_ISA_THUMB, __ARM_PCS.
++    Builder.defineMacro("__ARM_ACLE",         "101");
++    Builder.defineMacro("__ARM_ARCH",         "8");
++    Builder.defineMacro("__ARM_ARCH_PROFILE", "'A'");
++
++    Builder.defineMacro("__ARM_FEATURE_UNALIGNED");
++    Builder.defineMacro("__ARM_FEATURE_CLZ");
++    Builder.defineMacro("__ARM_FEATURE_FMA");
++
++    // FIXME: ACLE 1.1 reserves bit 4. Will almost certainly come to mean
++    // 128-bit LDXP present, at which point this becomes 0x1f.
++    Builder.defineMacro("__ARM_FEATURE_LDREX", "0xf");
++
++    // 0xe implies support for half, single and double precision operations.
++    Builder.defineMacro("__ARM_FP", "0xe");
++
++    // PCS specifies this for SysV variants, which is all we support. Other ABIs
++    // may choose __ARM_FP16_FORMAT_ALTERNATIVE.
++    Builder.defineMacro("__ARM_FP16_FORMAT_IEEE");
++
++    if (Opts.FastMath || Opts.FiniteMathOnly)
++      Builder.defineMacro("__ARM_FP_FAST");
++
++    if ((Opts.C99 || Opts.C11) && !Opts.Freestanding)
++      Builder.defineMacro("__ARM_FP_FENV_ROUNDING");
++
++    Builder.defineMacro("__ARM_SIZEOF_WCHAR_T",
++                        Opts.ShortWChar ? "2" : "4");
++
++    Builder.defineMacro("__ARM_SIZEOF_MINIMAL_ENUM",
++                        Opts.ShortEnums ? "1" : "4");
++
++    if (BigEndian)
++      Builder.defineMacro("__ARM_BIG_ENDIAN");
++  }
++  virtual void getTargetBuiltins(const Builtin::Info *&Records,
++                                 unsigned &NumRecords) const {
++    Records = BuiltinInfo;
++    NumRecords = clang::Epiphany::LastTSBuiltin-Builtin::FirstTSBuiltin;
++  }
++  virtual bool hasFeature(StringRef Feature) const {
++    return Feature == "epiphany";
++  }
++  virtual void getGCCRegNames(const char * const *&Names,
++                              unsigned &NumNames) const;
++  virtual void getGCCRegAliases(const GCCRegAlias *&Aliases,
++                                unsigned &NumAliases) const;
++
++  virtual bool isCLZForZeroUndef() const { return false; }
++
++  virtual bool validateAsmConstraint(const char *&Name,
++                                     TargetInfo::ConstraintInfo &Info) const {
++    switch (*Name) {
++    default: return false;
++    case 'w': // An FP/SIMD vector register
++      Info.setAllowsRegister();
++      return true;
++    case 'I': // Constant that can be used with an ADD instruction
++    case 'J': // Constant that can be used with a SUB instruction
++    case 'K': // Constant that can be used with a 32-bit logical instruction
++    case 'L': // Constant that can be used with a 64-bit logical instruction
++    case 'M': // Constant that can be used as a 32-bit MOV immediate
++    case 'N': // Constant that can be used as a 64-bit MOV immediate
++    case 'Y': // Floating point constant zero
++    case 'Z': // Integer constant zero
++      return true;
++    case 'Q': // A memory reference with base register and no offset
++      Info.setAllowsMemory();
++      return true;
++    case 'S': // A symbolic address
++      Info.setAllowsRegister();
++      return true;
++    case 'U':
++      // Ump: A memory address suitable for ldp/stp in SI, DI, SF and DF modes, whatever they may be
++      // Utf: A memory address suitable for ldp/stp in TF mode, whatever it may be
++      // Usa: An absolute symbolic address
++      // Ush: The high part (bits 32:12) of a pc-relative symbolic address
++      llvm_unreachable("FIXME: Unimplemented support for bizarre constraints");
++    }
++  }
++
++  virtual const char *getClobbers() const {
++    // There are no Epiphany clobbers shared by all asm statements.
++    return "";
++  }
++
++  virtual BuiltinVaListKind getBuiltinVaListKind() const {
++    return TargetInfo::AArch64ABIBuiltinVaList;
++  }
++};
++
++const char * const EpiphanyTargetInfo::GCCRegNames[] = {
++  "w0", "w1", "w2", "w3", "w4", "w5", "w6", "w7",
++  "w8", "w9", "w10", "w11", "w12", "w13", "w14", "w15",
++  "w16", "w17", "w18", "w19", "w20", "w21", "w22", "w23",
++  "w24", "w25", "w26", "w27", "w28", "w29", "w30", "wsp", "wzr",
++
++  "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7",
++  "x8", "x9", "x10", "x11", "x12", "x13", "x14", "x15",
++  "x16", "x17", "x18", "x19", "x20", "x21", "x22", "x23",
++  "x24", "x25", "x26", "x27", "x28", "x29", "x30", "sp", "xzr",
++
++  "b0", "b1", "b2", "b3", "b4", "b5", "b6", "b7",
++  "b8", "b9", "b10", "b11", "b12", "b13", "b14", "b15",
++  "b16", "b17", "b18", "b19", "b20", "b21", "b22", "b23",
++  "b24", "b25", "b26", "b27", "b28", "b29", "b30", "b31",
++
++  "h0", "h1", "h2", "h3", "h4", "h5", "h6", "h7",
++  "h8", "h9", "h10", "h11", "h12", "h13", "h14", "h15",
++  "h16", "h17", "h18", "h19", "h20", "h21", "h22", "h23",
++  "h24", "h25", "h26", "h27", "h28", "h29", "h30", "h31",
++
++  "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7",
++  "s8", "s9", "s10", "s11", "s12", "s13", "s14", "s15",
++  "s16", "s17", "s18", "s19", "s20", "s21", "s22", "s23",
++  "s24", "s25", "s26", "s27", "s28", "s29", "s30", "s31",
++
++  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
++  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
++  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
++  "d24", "d25", "d26", "d27", "d28", "d29", "d30", "d31",
++
++  "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
++  "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
++  "q16", "q17", "q18", "q19", "q20", "q21", "q22", "q23",
++  "q24", "q25", "q26", "q27", "q28", "q29", "q30", "q31"
++};
++
++void EpiphanyTargetInfo::getGCCRegNames(const char * const *&Names,
++                                       unsigned &NumNames) const {
++  Names = GCCRegNames;
++  NumNames = llvm::array_lengthof(GCCRegNames);
++}
++
++const TargetInfo::GCCRegAlias EpiphanyTargetInfo::GCCRegAliases[] = {
++  { { "x16" }, "ip0"},
++  { { "x17" }, "ip1"},
++  { { "x29" }, "fp" },
++  { { "x30" }, "lr" }
++};
++
++void EpiphanyTargetInfo::getGCCRegAliases(const GCCRegAlias *&Aliases,
++                                         unsigned &NumAliases) const {
++  Aliases = GCCRegAliases;
++  NumAliases = llvm::array_lengthof(GCCRegAliases);
++
++}
++
++const Builtin::Info EpiphanyTargetInfo::BuiltinInfo[] = {
++#define BUILTIN(ID, TYPE, ATTRS) { #ID, TYPE, ATTRS, 0, ALL_LANGUAGES },
++#define LIBBUILTIN(ID, TYPE, ATTRS, HEADER) { #ID, TYPE, ATTRS, HEADER,\
++                                              ALL_LANGUAGES },
++#include "clang/Basic/BuiltinsEpiphany.def"
++};
++
++} // end anonymous namespace
++
+ 
+ //===----------------------------------------------------------------------===//
+ // Driver code
+@@ -5234,6 +5428,14 @@ static TargetInfo *AllocateTarget(const std::string &T) {
+       return new AArch64TargetInfo(T);
+     }
+ 
++  case llvm::Triple::epiphany:
++    switch (os) {
++    case llvm::Triple::Linux:
++      return new LinuxTargetInfo<EpiphanyTargetInfo>(T);
++    default:
++      return new EpiphanyTargetInfo(T);
++    }
++
+   case llvm::Triple::arm:
+   case llvm::Triple::thumb:
+     if (Triple.isOSDarwin())
+diff --git a/lib/CodeGen/CGBuiltin.cpp b/lib/CodeGen/CGBuiltin.cpp
+index bd5afb6..6bd4b3a 100644
+--- a/lib/CodeGen/CGBuiltin.cpp
++++ b/lib/CodeGen/CGBuiltin.cpp
+@@ -1503,6 +1503,7 @@ Value *CodeGenFunction::EmitTargetBuiltinExpr(unsigned BuiltinID,
+                                               const CallExpr *E) {
+   switch (getTarget().getTriple().getArch()) {
+   case llvm::Triple::aarch64:
++  case llvm::Triple::epiphany:
+     return EmitAArch64BuiltinExpr(BuiltinID, E);
+   case llvm::Triple::arm:
+   case llvm::Triple::thumb:
+diff --git a/lib/CodeGen/TargetInfo.cpp b/lib/CodeGen/TargetInfo.cpp
+index 45fc475..5a98ce0 100644
+--- a/lib/CodeGen/TargetInfo.cpp
++++ b/lib/CodeGen/TargetInfo.cpp
+@@ -5133,6 +5133,9 @@ const TargetCodeGenInfo &CodeGenModule::getTargetCodeGenInfo() {
+   case llvm::Triple::mips64el:
+     return *(TheTargetCodeGenInfo = new MIPSTargetCodeGenInfo(Types, false));
+ 
++  case llvm::Triple::epiphany:
++//    return *(TheTargetCodeGenInfo = new EpiphanyTargetCodeGenInfo(Types));
++
+   case llvm::Triple::aarch64:
+     return *(TheTargetCodeGenInfo = new AArch64TargetCodeGenInfo(Types));
+ 
+diff --git a/lib/Driver/ToolChains.cpp b/lib/Driver/ToolChains.cpp
+index fffba0e..208f543 100644
+--- a/lib/Driver/ToolChains.cpp
++++ b/lib/Driver/ToolChains.cpp
+@@ -1089,6 +1089,12 @@ Generic_GCC::GCCInstallationDetector::GCCInstallationDetector(
+     "armv7hl-redhat-linux-gnueabi"
+   };
+ 
++  static const char *const EpiphanyLibDirs[] = { "/lib" };
++  static const char *const EpiphanyTriples[] = {
++    "epiphany-none-linux-gnu",
++    "epiphany-linux-gnu"
++  };
++
+   static const char *const X86_64LibDirs[] = { "/lib64", "/lib" };
+   static const char *const X86_64Triples[] = {
+     "x86_64-linux-gnu",
+@@ -1177,6 +1183,16 @@ Generic_GCC::GCCInstallationDetector::GCCInstallationDetector(
+         ARMTriples, ARMTriples + llvm::array_lengthof(ARMTriples));
+     }
+     break;
++  case llvm::Triple::epiphany:
++    LibDirs.append(EpiphanyLibDirs, EpiphanyLibDirs
++                   + llvm::array_lengthof(EpiphanyLibDirs));
++    TripleAliases.append(
++      EpiphanyTriples, EpiphanyTriples + llvm::array_lengthof(EpiphanyTriples));
++    MultiarchLibDirs.append(
++      EpiphanyLibDirs, EpiphanyLibDirs + llvm::array_lengthof(EpiphanyLibDirs));
++    MultiarchTripleAliases.append(
++      EpiphanyTriples, EpiphanyTriples + llvm::array_lengthof(EpiphanyTriples));
++    break;
+   case llvm::Triple::x86_64:
+     LibDirs.append(
+       X86_64LibDirs, X86_64LibDirs + llvm::array_lengthof(X86_64LibDirs));
+@@ -2151,6 +2167,9 @@ static std::string getMultiarchTriple(const llvm::Triple TargetTriple,
+   case llvm::Triple::aarch64:
+     if (llvm::sys::fs::exists(SysRoot + "/lib/aarch64-linux-gnu"))
+       return "aarch64-linux-gnu";
++  case llvm::Triple::epiphany:
++    if (llvm::sys::fs::exists(SysRoot + "/lib/epiphany-linux-gnu"))
++      return "epiphany-linux-gnu";
+   case llvm::Triple::mips:
+     if (llvm::sys::fs::exists(SysRoot + "/lib/mips-linux-gnu"))
+       return "mips-linux-gnu";
+@@ -2466,6 +2485,9 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
+   const StringRef ARMHFMultiarchIncludeDirs[] = {
+     "/usr/include/arm-linux-gnueabihf"
+   };
++  const StringRef EpiphanyMultiarchIncludeDirs[] = {
++    "/usr/include/epiphany-linux-gnu"
++  };
+   const StringRef MIPSMultiarchIncludeDirs[] = {
+     "/usr/include/mips-linux-gnu"
+   };
+@@ -2490,6 +2512,8 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
+       MultiarchIncludeDirs = ARMHFMultiarchIncludeDirs;
+     else
+       MultiarchIncludeDirs = ARMMultiarchIncludeDirs;
++  } else if (getTriple().getArch() == llvm::Triple::epiphany) {
++    MultiarchIncludeDirs = EpiphanyMultiarchIncludeDirs;
+   } else if (getTriple().getArch() == llvm::Triple::mips) {
+     MultiarchIncludeDirs = MIPSMultiarchIncludeDirs;
+   } else if (getTriple().getArch() == llvm::Triple::mipsel) {
+diff --git a/lib/Driver/Tools.cpp b/lib/Driver/Tools.cpp
+index 4fbc910..67f8d1c 100644
+--- a/lib/Driver/Tools.cpp
++++ b/lib/Driver/Tools.cpp
+@@ -5950,6 +5950,8 @@ void gnutools::Link::ConstructJob(Compilation &C, const JobAction &JA,
+   else if (ToolChain.getArch() == llvm::Triple::arm
+            ||  ToolChain.getArch() == llvm::Triple::thumb)
+     CmdArgs.push_back("armelf_linux_eabi");
++  else if (ToolChain.getArch() == llvm::Triple::epiphany)
++    CmdArgs.push_back("epiphany_linux_eabi");
+   else if (ToolChain.getArch() == llvm::Triple::ppc)
+     CmdArgs.push_back("elf32ppclinux");
+   else if (ToolChain.getArch() == llvm::Triple::ppc64)
+-- 
+1.7.6.5
+
