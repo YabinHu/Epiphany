@@ -1,4 +1,4 @@
-//==-- Epiphany.h - Top-level interface for Epiphany representation -*- C++ -*-=//
+//==-- Epiphany.h - Top-level interface for Epiphany --------------*- C++ -*-=//
 //
 //                     The LLVM Compiler Infrastructure
 //

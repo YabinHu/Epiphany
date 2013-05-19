@@ -1,4 +1,4 @@
-//==-- EpiphanySubtarget.h - Define Subtarget for the Epiphany ---*- C++ -*--===//
+//==-- EpiphanySubtarget.h - Define Subtarget for the Epiphany -*- C++ -*--===//
 //
 //                     The LLVM Compiler Infrastructure
 //

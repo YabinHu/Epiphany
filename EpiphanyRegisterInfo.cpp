@@ -1,4 +1,4 @@
-//===- EpiphanyRegisterInfo.cpp - Epiphany Register Information -------------===//
+//===-- EpiphanyRegisterInfo.cpp - Epiphany Register Information ----------===//
 //
 //                     The LLVM Compiler Infrastructure
 //

@@ -1,4 +1,4 @@
-//=- EpiphanyMachineFuctionInfo.h - Epiphany machine function info -*- C++ -*-==//
+//=-- EpiphanyMachineFuctionInfo.h -Epiphany machine functioninfo-*- C++ -*-==//
 //
 //                     The LLVM Compiler Infrastructure
 //

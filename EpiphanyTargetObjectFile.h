@@ -1,4 +1,4 @@
-//===-- EpiphanyTargetObjectFile.h - Epiphany Object Info ---------*- C++ -*-===//
+//===-- EpiphanyTargetObjectFile.h - Epiphany Object Info -------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //

@@ -1,4 +1,4 @@
-//===-- EpiphanyISelLowering.cpp - Epiphany DAG Lowering Implementation -----===//
+//===-- EpiphanyISelLowering.cpp - Epiphany DAG Lowering Implementation ---===//
 //
 //                     The LLVM Compiler Infrastructure
 //

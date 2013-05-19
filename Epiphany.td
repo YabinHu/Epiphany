@@ -1,4 +1,4 @@
-//===- Epiphany.td - Describe the Epiphany Target Machine -------*- tblgen -*-==//
+//===- Epiphany.td - Describe the Epiphany Target Machine -----*- tblgen -*-==//
 //
 //                     The LLVM Compiler Infrastructure
 //

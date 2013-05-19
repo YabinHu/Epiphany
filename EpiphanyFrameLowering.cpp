@@ -1,4 +1,4 @@
-//===- EpiphanyFrameLowering.cpp - Epiphany Frame Information ---------------===//
+//===-- EpiphanyFrameLowering.cpp - Epiphany Frame Information ------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //

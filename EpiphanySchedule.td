@@ -1,4 +1,4 @@
-//===- EpiphanySchedule.td - Epiphany Scheduling Definitions -*- tablegen -*-===//
+//===-- EpiphanySchedule.td - Epiphany Scheduling Defs -----*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //

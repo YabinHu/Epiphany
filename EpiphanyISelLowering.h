@@ -1,4 +1,4 @@
-//==-- EpiphanyISelLowering.h - Epiphany DAG Lowering Interface ----*- C++ -*-==//
+//==-- EpiphanyISelLowering.h - Epiphany DAG Lowering Interface --*- C++ -*-==//
 //
 //                     The LLVM Compiler Infrastructure
 //

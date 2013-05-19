@@ -1,4 +1,4 @@
-//===- EpiphanyRegisterInfo.td - ARM Register defs ----------*- tablegen -*-===//
+//===- EpiphanyRegisterInfo.td - Epiphany Register defs ----*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //

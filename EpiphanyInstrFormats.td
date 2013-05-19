@@ -1,4 +1,4 @@
-//===- EpiphanyInstrFormats.td - Epiphany Instruction Formats --*- tablegen -*-=//
+//===- EpiphanyInstrFormats.td - Epiphany Instruction Formats-*- tablegen -*-=//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 // This file describes Epiphany instruction formats, down to the level of the
 // instruction's overall class.
-// ===----------------------------------------------------------------------===//
+// ===---------------------------------------------------------------------===//
 
 
 //===----------------------------------------------------------------------===//

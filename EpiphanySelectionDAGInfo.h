@@ -1,4 +1,4 @@
-//===-- EpiphanySelectionDAGInfo.h - Epiphany SelectionDAG Info ---*- C++ -*-===//
+//===-- EpiphanySelectionDAGInfo.h - Epiphany SelectionDAG Info -*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //

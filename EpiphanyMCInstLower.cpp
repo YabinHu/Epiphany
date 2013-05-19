@@ -1,4 +1,4 @@
-//===-- EpiphanyMCInstLower.cpp - Convert Epiphany MachineInstr to an MCInst -==//
+//===-- EpiphanyMCInstLower.cpp - Convert Epiphany MachineInstr to MCInst --==//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file contains code to lower Epiphany MachineInstrs to their corresponding
-// MCInst records.
+// This file contains code to lower Epiphany MachineInstrs to their
+// corresponding MCInst records.
 //
 //===----------------------------------------------------------------------===//
 

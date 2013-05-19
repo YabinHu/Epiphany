@@ -1,4 +1,4 @@
-//===- EpiphanyInstrInfo.cpp - Epiphany Instruction Information -------------===//
+//===-- EpiphanyInstrInfo.cpp - Epiphany Instruction Information ----------===//
 //
 //                     The LLVM Compiler Infrastructure
 //

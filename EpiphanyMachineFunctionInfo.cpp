@@ -1,4 +1,4 @@
-//===-- EpiphanyMachineFuctionInfo.cpp - Epiphany machine function info -----===//
+//===-- EpiphanyMachineFuctionInfo.cpp - Epiphany machine function info ---===//
 //
 //                     The LLVM Compiler Infrastructure
 //

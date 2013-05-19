@@ -1,4 +1,4 @@
-//==- EpiphanyRegisterInfo.h - Epiphany Register Information Impl -*- C++ -*-===//
+//==- EpiphanyRegisterInfo.h - Epiphany Register Info Impl ------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //

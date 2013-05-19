@@ -1,4 +1,4 @@
-//===- EpiphanyInstrInfo.h - Epiphany Instruction Information -----*- C++ -*-===//
+//===-- EpiphanyInstrInfo.h - Epiphany Instruction Information --*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //

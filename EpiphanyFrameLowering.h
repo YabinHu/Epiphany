@@ -1,4 +1,4 @@
-//==- EpiphanyFrameLowering.h - Define frame lowering for Epiphany -*- C++ -*--=//
+//==-- EpiphanyFrameLowering.h - Define frame lowering -----------*- C++ -*--=//
 //
 //                     The LLVM Compiler Infrastructure
 //

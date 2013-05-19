@@ -1,4 +1,4 @@
-//===-- EpiphanySubtarget.cpp - Epiphany Subtarget Information --------------===//
+//===-- EpiphanySubtarget.cpp - Epiphany Subtarget Information ------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //

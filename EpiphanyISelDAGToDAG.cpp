@@ -1,4 +1,4 @@
-//===-- EpiphanyISelDAGToDAG.cpp - A dag to dag inst selector for Epiphany --===//
+//===-- EpiphanyISelDAGToDAG.cpp - A dag to dag inst selector -------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //

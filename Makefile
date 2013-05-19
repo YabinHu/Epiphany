@@ -1,4 +1,4 @@
-##===- lib/Target/Epiphany/Makefile -------------------------*- Makefile -*-===##
+##===- lib/Target/Epiphany/Makefile ------------------------*- Makefile -*-===##
 #
 #                     The LLVM Compiler Infrastructure
 #

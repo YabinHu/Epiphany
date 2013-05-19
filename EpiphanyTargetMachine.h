@@ -1,4 +1,4 @@
-//=== EpiphanyTargetMachine.h - Define TargetMachine for Epiphany -*- C++ -*-===//
+//=== EpiphanyTargetMachine.h - Define Epiphany TargetMachine ---*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //

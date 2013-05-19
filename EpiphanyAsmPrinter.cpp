@@ -1,4 +1,4 @@
-//===-- EpiphanyAsmPrinter.cpp - Print machine code to an Epiphany .s file --===//
+//===-- EpiphanyAsmPrinter.cpp - Print machine code to an Epiphany .s file-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
